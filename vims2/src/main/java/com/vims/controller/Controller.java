@@ -548,6 +548,8 @@ public class Controller {
 		return new ResponseEntity<RegisteredPay>(pay, HttpStatus.OK);
 	}
 	
+	
+	
 	@GetMapping(value = "/registeredpay/findall")
 	public ResponseEntity<?> listAllRegisteredPay() {
 		registeredpays = registeredPayService.findAll();
@@ -677,6 +679,42 @@ public class Controller {
 		return new ResponseEntity<String>("claimed processed sucessfully and claim id is :"+accidentclaim.getClaim_id()+" and claimed amount is:"+accidentclaim.getClaim_amount(), HttpStatus.OK);
 	}
 	
+	@GetMapping(value = "/accidentclaim/findtotalamount")
+	public ResponseEntity<?> totalAmountPaidByUser(@PathVariable("policy_id") String policy_id){
+		
+		List<DirectPay> l1=vehicleService.getDirectPayDetails(policy_id);
+		List<RegisteredPay>l2=vehicleService.getRegisteredPayDetails(policy_id);
+		double directamount=0;Date max=null;
+		if(l1.size()==0){
+			max=l2.get(0).getDue_date();
+			for(RegisteredPay l:l2) {
+				if(l.getDue_date().after(max)) {
+					max=l.getDue_date();directamount+=Double.parseDouble(l.getPay_amount());
+				}
+		}
+		}
+		else if(l2.size()==0){
+			max=l1.get(0).getDue_date();
+			for(DirectPay l:l1) {
+				if(l.getDue_date().after(max)) {
+					max=l.getDue_date();directamount+=(l.getAmount_paid());
+				}
+			}
+		}else{
+			for(DirectPay l:l1) {
+				if(l.getDue_date().after(max)) {
+					max=l.getDue_date();directamount+=(l.getAmount_paid());
+				}
+			}
+			
+			for(RegisteredPay l:l2) {
+				if(l.getDue_date().after(max)) {
+					max=l.getDue_date();directamount+=Double.parseDouble(l.getPay_amount());
+				}
+		}
+}
+		return new ResponseEntity<String>("No Records available in DB", HttpStatus.OK);
+	}
 	
 	@GetMapping(value = "/accidentclaim/findall")
 	public ResponseEntity<?> listAllAccidentClaim() {
